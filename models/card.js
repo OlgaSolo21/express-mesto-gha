@@ -1,16 +1,24 @@
 // Создаём схему и модель для сущности карточки.
 const mongoose = require('mongoose');
+const validator = require('validator');
 
-const userSchema = new mongoose.Schema({
+const cardSchema = new mongoose.Schema({
   name: { // у карточки есть имя — опишем требования к имени в схеме:
     type: String, // имя — это строка
-    required: true, // оно должно быть у каждого пользователя, так что имя — обязательное поле
-    minlength: 2, // минимальная длина имени — 2 символа
-    maxlength: 30, // а максимальная — 30 символов
+    required: {
+      value: true,
+      message: 'Поле является обязательным',
+    },
+    minlength: [2, 'Минимальная длина — 2 символа'],
+    maxlength: [30, 'Максимальная длина — 30 символов'],
   },
   link: { // ссылка на картинку
     type: String,
     required: true,
+    validate: {
+      validator: (url) => validator.isURL(url),
+      message: 'Некорректный URL',
+    },
   },
   owner: { // ссылка на модель автора карточки
     type: mongoose.Schema.Types.ObjectId,
@@ -28,4 +36,4 @@ const userSchema = new mongoose.Schema({
 }, { versionKey: false, timestamps: true });
 
 // создаём модель и экспортируем её
-module.exports = mongoose.model('card', userSchema);
+module.exports = mongoose.model('card', cardSchema);

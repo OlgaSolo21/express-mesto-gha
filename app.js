@@ -22,6 +22,7 @@ app.use((req, res, next) => {
 
 // реализуем роуты user
 app.use('/', require('./routes/users'));
+app.use('/', require('./routes/cards'));
 
 // слушаем порт
 app.listen(PORT);

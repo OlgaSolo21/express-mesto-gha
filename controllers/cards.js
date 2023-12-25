@@ -20,8 +20,6 @@ module.exports.createCard = (req, res) => {
 // GET /cards — возвращает все карточки
 module.exports.getCards = (req, res) => {
   Card.find({})
-    // пробуем метод populate - отправляем в ответе несколько полей, полученных из связей
-    .populate(['owner', 'likes'])
     .then((users) => res.status(200).send(users))
     .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };

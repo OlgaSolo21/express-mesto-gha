@@ -1,13 +1,24 @@
 // пишем контроллеры для юзера
 const User = require('../models/user'); // импортируем модель
+const bcrypt = require('bcryptjs'); // импортируем bcrypt
 
 // POST /users — создаёт пользователя
+  //дорабатываем по тз 14пр
 module.exports.createUser = (req, res) => { // создаем пользователя User.create
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
+  const { name, about, avatar, email, password } = req.body;
+  // хешируем пароль
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email,
+      password: hash, // записываем хеш в базу
+    }))
     .then((user) => res.status(200).send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.code === 11000) {//ДУБЛИ ПОКА СОЗДАЮТСЯ
+        return res.status(409).send({
+          message: `Пользователь с таким email: ${email} уже зарегистрирован`,
+        });
+      } else if (err.name === 'ValidationError') {
         return res.status(400).send({
           message: err.message,
         });

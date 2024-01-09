@@ -7,6 +7,7 @@ const { PORT = 3000 } = process.env;
 const app = express();
 
 const { createUser, login } = require('./controllers/users');
+const auth = require('./middlewares/auth')
 
 app.use(bodyParser.json()); // для собирания JSON-формата
 app.use(bodyParser.urlencoded({ extended: true })); // для приёма веб-страниц внутри POST-запроса
@@ -14,19 +15,17 @@ app.use(bodyParser.urlencoded({ extended: true })); // для приёма ве�
 // подключаемся к серверу mongo
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-// Реализуйте временное решение авторизации
-app.use((req, res, next) => {
-  req.user = {
-    _id: '658884f60afee6f84e81b41f', // вставьте сюда _id созданного в предыдущем пункте пользователя
-  };
-  next();
-});
-
-// реализуем роуты user/cards/signin/signup
-app.use('/', require('./routes/users'));
-app.use('/', require('./routes/cards'));
+// реализуем роуты signin/signup
 app.post('/signin', login);
 app.post('/signup', createUser);
+
+// Защитите API авторизацией(все что ниже роуты, которым авторизация нужна)
+app.use(auth);
+
+// реализуем роуты user/cards
+app.use('/', require('./routes/users'));
+app.use('/', require('./routes/cards'));
+
 
 // автотесты
 app.use((req, res) => {

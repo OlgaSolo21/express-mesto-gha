@@ -104,6 +104,13 @@ module.exports.updateAvatar = (req, res) => { // обновляем аватар
     });
 };
 
+//GET /users/me - возвращает информацию о текущем пользователе
+module.exports.getUserMe = (req, res) => {
+  User.findById(req.user._id)
+    .then((user) => res.status(200).send(user))
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+}
+
 // Создайте контроллер login
 module.exports.login = (req, res) => {
   const { email, password } = req.body;

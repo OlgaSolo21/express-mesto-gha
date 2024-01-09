@@ -6,7 +6,7 @@ const { PORT = 3000 } = process.env;
 
 const app = express();
 
-const {createUser, login} = require('./controllers/users');
+const { createUser, login } = require('./controllers/users');
 
 app.use(bodyParser.json()); // для собирания JSON-формата
 app.use(bodyParser.urlencoded({ extended: true })); // для приёма веб-страниц внутри POST-запроса
@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 // реализуем роуты user/cards/signin/signup
 app.use('/', require('./routes/users'));
 app.use('/', require('./routes/cards'));
-//app.post('/signin', login);
+app.post('/signin', login);
 app.post('/signup', createUser);
 
 // автотесты

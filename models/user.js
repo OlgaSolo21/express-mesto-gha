@@ -1,17 +1,18 @@
 // Создаём схему и модель для сущности пользователя.
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs'); // импортируем bcrypt
 
 const userSchema = new mongoose.Schema({
   name: { // у пользователя есть имя — опишем требования к имени в схеме:
     type: String, // имя — это строка
-    default: "Жак-Ив Кусто",
+    default: 'Жак-Ив Кусто',
     minlength: [2, 'Минимальная длина — 2 символа'], // минимальная длина имени — 2 символа
     maxlength: [30, 'Максимальная длина — 30 символов'], // а максимальная — 30 символов
   },
   about: { // информация о пользователе
     type: String,
-    default: "Исследователь",
+    default: 'Исследователь',
     minlength: [2, 'Минимальная длина — 2 символа'],
     maxlength: [30, 'Максимальная длина — 30 символов'],
   },
@@ -44,6 +45,23 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 }, { versionKey: false, timestamps: true });
+
+userSchema.statics.findUserByCredential = function (email, password) {
+  return this.findOne({ email }) // попытаемся найти пользователя по почте
+    .select('+password')
+    .then((user) => {
+      if (!user) { // не нашёлся — отклоняем промис
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+      return bcrypt.compare(password, user.password) // нашёлся — сравниваем хеши
+        .then((matched) => {
+          if (!matched) { // хеши не совпали — отклоняем промис
+            return Promise.reject(new Error('Неправильные почта или пароль'));
+          }
+          return user; // теперь user доступен
+        });
+    });
+};
 
 // создаём модель и экспортируем её
 module.exports = mongoose.model('user', userSchema);

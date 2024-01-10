@@ -31,7 +31,7 @@ module.exports.deleteCard = (req, res, next) => {
   Card.findById(cardId)
     .then((card) => {
       if (card.owner.toString() !== req.user._id) {
-        next(new ForbiddenError('Карточка другого пользователя, ее нельзя удалить'));
+        throw new ForbiddenError('Карточка другого пользователя, ее нельзя удалить');
       }
       Card.deleteOne(card)
         .then(() => {
@@ -39,9 +39,9 @@ module.exports.deleteCard = (req, res, next) => {
         })
         .catch((err) => {
           if (!card) {
-            next(new NotFoundError('Карточка с указанным _id не найдена'));
+            throw new NotFoundError('Карточка с указанным _id не найдена');
           } else if (err.name === 'CastError') {
-            next(new BadRequest('Данные введены некорректно'));
+            throw new BadRequest('Данные введены некорректно');
           }
         });
     })

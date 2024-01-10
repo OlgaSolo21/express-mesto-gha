@@ -80,12 +80,12 @@ module.exports.dislikeCard = (req, res, next) => {
       if (!card) {
         next(new NotFoundError('Карточка с указанным _id не найдена'));
       }
-      res.status(200).send(card);
+      return res.status(200).send(card);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequest('Данные введены некорректно'));
-      }
-    })
+    // .catch((err) => {
+    //   if (err.name === 'CastError') {
+    //     next(new BadRequest('Данные введены некорректно'));
+    //   }
+    // })
     .catch(next);
 };

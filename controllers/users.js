@@ -2,15 +2,18 @@
 const bcrypt = require('bcryptjs'); // импортируем bcrypt
 const jwt = require('jsonwebtoken'); // импортируем jwt token модуль
 const User = require('../models/user'); // импортируем модель
+const BadRequest = require('../errors/BadRequest');
+const ConflictError = require('../errors/ConflictError');
+const NotFoundError = require('../errors/NotFoundError');
 
 // POST /users — создаёт пользователя
 // дорабатываем по тз 14пр
-module.exports.createUser = (req, res) => { // создаем пользователя User.create
+module.exports.createUser = (req, res, next) => { // создаем пользователя User.create
   const {
-    name, about, avatar, email, password,
+    name, about, avatar, email,
   } = req.body;
   // хешируем пароль
-  bcrypt.hash(password, 10)
+  bcrypt.hash(req.body.password, 10)
     .then((hash) => User.create({
       name,
       about,
@@ -18,98 +21,84 @@ module.exports.createUser = (req, res) => { // создаем пользоват
       email,
       password: hash, // записываем хеш в базу
     }))
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.status(201).send(user))
     .catch((err) => {
-      if (err.code === 11000) { // ДУБЛИ ПОКА СОЗДАЮТСЯ
-        return res.status(409).send({
-          message: `Пользователь с таким email: ${email} уже зарегистрирован`,
-        });
-      } if (err.name === 'ValidationError') {
-        return res.status(400).send({
-          message: err.message,
-        });
+      if (err.code === 11000) { // ДУБЛИ СОЗДАЮТСЯ без celebrate, с ним все валидно
+        next(new ConflictError(`Пользователь с email: ${email} уже существует`));
+      } else if (err.name === 'ValidationError') {
+        next(new BadRequest(err.message));
+      } else {
+        next(err);
       }
-      return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
 // GET /users — возвращает всех пользователей
-module.exports.getUsers = (req, res) => { // получаем всех пользователей User.find
+module.exports.getUsers = (req, res, next) => { // получаем всех пользователей User.find
   User.find({})
     .then((users) => res.send(users))
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch(next);
 };
 
 // GET /users/:userId - возвращает пользователя по _id
-module.exports.getUsersId = (req, res) => { // получаем одного пользователя User.findById
+module.exports.getUsersId = (req, res, next) => { // получаем одного пользователя User.findById
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
-        return;
+        next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
       }
       res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(400).send({
-          message: 'Данные введены некорректно',
-        });
+        next(new BadRequest('Данные введены некорректно'));
       }
-      return res.status(500).send({ message: 'На сервере произошла ошибка' });
-    });
+    })
+    .catch(next);
 };
 
 // PATCH /users/me — обновляет профиль
-module.exports.updateUserProfile = (req, res) => { // обновляем имя-обо мне User.findByIdAndUpdate
+module.exports.updateUserProfile = (req, res, next) => { // обновляем профиль User.findByIdAndUpdate
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
-        return;
+        next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
       }
       res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({
-          message: err.message,
-        });
-        return;
+        next(new BadRequest('Данные введены некорректно'));
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
-    });
+    })
+    .catch(next);
 };
 
 // PATCH /users/me/avatar — обновляет аватар
-module.exports.updateAvatar = (req, res) => { // обновляем аватар профиля User.findByIdAndUpdate
+module.exports.updateAvatar = (req, res, next) => { // обновляем аватар User.findByIdAndUpdate
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        res.status(404).send({ message: 'Запрашиваемый пользователь не найден' });
-        return;
+        next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
       }
       res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({
-          message: err.message,
-        });
-        return;
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        next(new BadRequest('Данные введены некорректно'));
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
-    });
+    })
+    .catch(next);
 };
 
-//GET /users/me - возвращает информацию о текущем пользователе
-module.exports.getUserMe = (req, res) => {
+// GET /users/me - возвращает информацию о текущем пользователе
+module.exports.getUserMe = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => res.status(200).send(user))
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
-}
+    .catch(next);
+};
 
 // Создайте контроллер login
 module.exports.login = (req, res) => {

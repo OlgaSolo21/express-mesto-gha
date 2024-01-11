@@ -10,10 +10,10 @@ const NotFoundError = require('../errors/NotFoundError');
 // дорабатываем по тз 14пр
 module.exports.createUser = (req, res, next) => { // создаем пользователя User.create
   const {
-    name, about, avatar, email, password,
+    name, about, avatar, email,
   } = req.body;
   // хешируем пароль
-  bcrypt.hash(password, 10)
+  bcrypt.hash(req.body.password, 10)
     .then((hash) => User.create({
       name,
       about,
@@ -21,7 +21,15 @@ module.exports.createUser = (req, res, next) => { // создаем пользо
       email,
       password: hash, // записываем хеш в базу
     }))
-    .then((user) => res.status(201).send(user))
+    // .then((user) => res.status(201).send({
+    //   name: user.name,
+    //   about: user.about,
+    //   avatar: user.avatar,
+    //   email: user.email,
+    // }))
+
+    // В ответе не содержится password созданного пользователя
+    .then(({ password, ...user }) => res.send(user))
     .catch((err) => {
       if (err.code === 11000) { // ДУБЛИ СОЗДАЮТСЯ без celebrate, с ним все валидно
         next(new ConflictError(`Пользователь с email: ${email} уже существует`));

@@ -1,11 +1,11 @@
 const router = require('express').Router();
+const { celebrate, Joi } = require('celebrate');
 const { createUser, login } = require('../controllers/users');
 const auth = require('../middlewares/auth');
 const NotFoundError = require('../errors/NotFoundError');
-const userRout = require ('./users')
-const cardRout = require('./cards')
-const { celebrate, Joi } = require('celebrate');
-const urlRegex = require('../utils/constans')
+const userRout = require('./users');
+const cardRout = require('./cards');
+const urlRegex = require('../utils/constans');
 
 // реализуем роуты signin/signup
 router.post(
@@ -41,7 +41,7 @@ router.use('/', cardRout);
 
 // автотесты
 router.use((req, res, next) => {
-  next (new NotFoundError('Страница не найдена'))
+  next(new NotFoundError('Страница не найдена'));
 });
 
 module.exports = router;

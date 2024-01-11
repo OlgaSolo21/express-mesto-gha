@@ -2,6 +2,8 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs'); // импортируем bcrypt
+const AuthorisationError = require('../errors/AuthorisationError');
+
 
 const userSchema = new mongoose.Schema({
   name: { // у пользователя есть имя — опишем требования к имени в схеме:
@@ -47,16 +49,16 @@ const userSchema = new mongoose.Schema({
 }, { versionKey: false, timestamps: true });
 
 userSchema.statics.findUserByCredential = function findOne(email, password) {
-  return this.findOne({ email }) // попытаемся найти пользователя по почте
-    .select('+password') // в случае аутентификации хеш пароля нужен
+  // попытаемся найти пользователя по почте
+  return this.findOne({ email }).select('+password') // в случае аутентификации хеш пароля нужен
     .then((user) => {
       if (!user) { // не нашёлся — отклоняем промис
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        throw new AuthorisationError('Неправильная почта или пароль');
       }
       return bcrypt.compare(password, user.password) // нашёлся — сравниваем хеши
         .then((matched) => {
           if (!matched) { // хеши не совпали — отклоняем промис
-            return Promise.reject(new Error('Неправильные почта или пароль'));
+            throw new AuthorisationError('Неправильная почта или пароль');
           }
           return user; // теперь user доступен
         });

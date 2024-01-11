@@ -13,15 +13,14 @@ module.exports.createCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequest('Переданы некорректные данные при создании карточки'));
-      }
+      } else {next(err)}
     })
-    .catch(next);
 };
 
 // GET /cards — возвращает все карточки
 module.exports.getCards = (req, res, next) => {
   Card.find({})
-    .then((users) => res.status(200).send(users))
+    .then((cards) => res.send(cards))
     .catch(next);
 };
 

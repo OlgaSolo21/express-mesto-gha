@@ -4,6 +4,7 @@ const { celebrate, Joi } = require('celebrate');
 const {
   createCard, getCards, deleteCard, likeCard, dislikeCard,
 } = require('../controllers/cards');
+const urlRegex = require('../utils/constans')
 
 router.get('/cards', getCards); // возвращает все карточки
 
@@ -12,9 +13,7 @@ router.post(
   celebrate({
     body: Joi.object().keys({
       name: Joi.string().required().min(2).max(30),
-      link: Joi.string().required().regex(
-        /^(https?:\/\/(www\.)?([a-zA-z0-9-]){1,}\.?([a-zA-z0-9]){2,8}(\/?([a-zA-z0-9-])*\/?)*\/?([-._~:/?#[]@!\$&'\(\)\*\+,;=])*)/,
-      ),
+      link: Joi.string().required().pattern(urlRegex),
     }),
   }),
   createCard,

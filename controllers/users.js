@@ -50,16 +50,15 @@ module.exports.getUsersId = (req, res, next) => { // получаем одног
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
+        return next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
       }
       res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequest('Данные введены некорректно'));
-      }
+      } else {next(err)}
     })
-    .catch(next);
 };
 
 // PATCH /users/me — обновляет профиль
@@ -68,16 +67,15 @@ module.exports.updateUserProfile = (req, res, next) => { // обновляем �
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
+        return next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
       }
       res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequest('Данные введены некорректно'));
-      }
+      } else {next(err)}
     })
-    .catch(next);
 };
 
 // PATCH /users/me/avatar — обновляет аватар
@@ -86,16 +84,15 @@ module.exports.updateAvatar = (req, res, next) => { // обновляем ава
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
+        return next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
       }
       res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         next(new BadRequest('Данные введены некорректно'));
-      }
+      }else {next(err)}
     })
-    .catch(next);
 };
 
 // GET /users/me - возвращает информацию о текущем пользователе
@@ -106,7 +103,7 @@ module.exports.getUserMe = (req, res, next) => {
 };
 
 // Создайте контроллер login
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredential(email, password)
     .then((user) => {
@@ -117,9 +114,5 @@ module.exports.login = (req, res) => {
       );
       res.send({ token }); // вернём токен
     })
-    .catch((err) => {
-      res
-        .status(401)
-        .send({ message: err.message });
-    });
+    .catch(next)
 };

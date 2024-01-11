@@ -21,12 +21,12 @@ module.exports.createUser = (req, res, next) => { // создаем пользо
       email,
       password: hash, // записываем хеш в базу
     }))
-    .then((user) => res.status(201).send({ // В ответе не содержится password созданного пользователя
-       name: user.name,
-       about: user.about,
-       avatar: user.avatar,
-       email: user.email,
-     }))
+    .then((user) => res.status(201).send({ // В ответе убираем password
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
+    }))
     .catch((err) => {
       if (err.code === 11000) { // ДУБЛИ СОЗДАЮТСЯ без celebrate, с ним все валидно
         next(new ConflictError(`Пользователь с email: ${email} уже существует`));

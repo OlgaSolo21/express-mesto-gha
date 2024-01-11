@@ -29,18 +29,19 @@ module.exports.getCards = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   Card.findById(cardId)
-    .then((card, err) => {
+    .then((card) => {
       if (!card) {
-        throw new NotFoundError('Карточка с указанным _id не найдена');
+        return next(new NotFoundError('Карточка с указанным _id не найдена'));
       }
       if (card.owner.toString() !== req.user._id) {
-        return next (new ForbiddenError('Карточка другого пользователя, ее нельзя удалить'));
+        return next(new ForbiddenError('Карточка другого пользователя, ее нельзя удалить'));
       }
-      Card.deleteOne(card)
-        res.status(200).send({ message: 'Карточка удалена' });
+      return Card.deleteOne(card)
+        .then(() => { res.status(200).send({ message: 'Карточка удалена' }); });
     })
     .catch(next);
 };
+
 // PUT /cards/:cardId/likes — поставить лайк карточке
 module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(

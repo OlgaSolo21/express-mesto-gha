@@ -51,9 +51,9 @@ module.exports.likeCard = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        return next(new NotFoundError('Карточка с указанным _id не найдена'));
+        throw new NotFoundError('Карточка отсутствует');
       }
-      res.status(200).send(card);
+      return res.send(card);
     })
     .catch(next);
 };

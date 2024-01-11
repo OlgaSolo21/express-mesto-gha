@@ -10,10 +10,10 @@ const NotFoundError = require('../errors/NotFoundError');
 // дорабатываем по тз 14пр
 module.exports.createUser = (req, res, next) => { // создаем пользователя User.create
   const {
-    name, about, avatar, email,
+    name, about, avatar, email, password,
   } = req.body;
   // хешируем пароль
-  bcrypt.hash(req.body.password, 10)
+  bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name,
       about,

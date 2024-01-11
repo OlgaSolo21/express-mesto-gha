@@ -21,7 +21,7 @@ module.exports.createUser = (req, res, next) => { // создаем пользо
       email,
       password: hash, // записываем хеш в базу
     }))
-    .then((user) => res.status(201).send({ // В ответе убираем password
+    .then((user) => res.send({ // В ответе убираем password
       name: user.name,
       about: user.about,
       avatar: user.avatar,
@@ -53,7 +53,7 @@ module.exports.getUsersId = (req, res, next) => { // получаем одног
         next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
         return;
       }
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -71,7 +71,7 @@ module.exports.updateUserProfile = (req, res, next) => { // обновляем �
         next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
         return;
       }
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -89,7 +89,7 @@ module.exports.updateAvatar = (req, res, next) => { // обновляем ава
         next(new NotFoundError('Запрашиваемый пользователь по _id не найден'));
         return;
       }
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
@@ -102,7 +102,7 @@ module.exports.updateAvatar = (req, res, next) => { // обновляем ава
 // GET /users/me - возвращает информацию о текущем пользователе
 module.exports.getUserMe = (req, res, next) => {
   User.findById(req.user._id)
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.send(user))
     .catch(next);
 };
 

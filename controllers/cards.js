@@ -9,7 +9,7 @@ module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id; // владелец карточки
   Card.create({ name, link, owner })// тут будет также _id новой карточки (см Postman)
-    .then((card) => res.status(200).send(card))
+    .then((card) => re.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequest('Переданы некорректные данные при создании карточки'));
@@ -36,7 +36,7 @@ module.exports.deleteCard = (req, res, next) => {
         return next(new ForbiddenError('Карточка другого пользователя, ее нельзя удалить'));
       }
       return Card.deleteOne(card)
-        .then(() => { res.status(200).send({ message: 'Карточка удалена' }); });
+        .then(() => { res.send({ message: 'Карточка удалена' }); });
     })
     .catch(next);
 };
